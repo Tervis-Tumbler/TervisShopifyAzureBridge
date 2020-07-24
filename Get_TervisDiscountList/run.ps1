@@ -36,25 +36,20 @@ try {
     $Response = Invoke-RestMethod -Uri $Uri -Headers $Headers
     $Status = [HttpStatusCode]::OK
 
-    $Result = $Response.value.fields | 
+    $DiscountObjects = $Response.value.fields | 
         Where-Object Active -EQ $True |
         ForEach-Object {
+            $FinalAmount = if ($_.Type -eq "Percent") {$_.Amount / 100} else {$_.Amount} 
             [PSCustomObject]@{
                 discount_description = $_.Title
                 type = $_.Type.toLower()
-                amount = $_.Amount
+                amount = $FinalAmount
                 kind = $_.Kind.toLower()
                 description_text = $_.Reason_x0020_Code_x0020_Descript
             }
-        } |
-        # Select-Object -Property `
-            # "Title",
-            # "Location",
-            # "Type",
-            # "Amount",
-            # @{N="Description";E={$_."Reason_x0020_Code_x0020_Descript"}} | 
-        ConvertTo-Json -Compress
-    Write-Host "Get_TervisDiscountList > Retrieved $($Result.count) codes."
+        } 
+    $Result = $DiscountObjects | ConvertTo-Json -Compress
+    Write-Host "Get_TervisDiscountList > Retrieved $($DiscountObjects.count) discount codes."
 } catch {
     $Status = [HttpStatusCode]::BadRequest
     $Result = $_ | ConvertTo-Json -Compress
