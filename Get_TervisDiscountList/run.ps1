@@ -46,6 +46,7 @@ try {
                 amount = $FinalAmount
                 kind = $_.Kind.toLower()
                 description_text = $_.Reason_x0020_Code_x0020_Descript
+                parameters = $(($_.Parameters -split ";").Trim())
             }
         } 
     $Result = $DiscountObjects | ConvertTo-Json -Compress
