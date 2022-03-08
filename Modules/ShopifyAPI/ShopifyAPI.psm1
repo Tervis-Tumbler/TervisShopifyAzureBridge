@@ -101,6 +101,35 @@ function Get-ShopifyProductMetafieldValue {
     }
 }
 
+function Get-ShopifyProductVariant {
+    param (
+        [Parameter(Mandatory)]$Domain,
+        [Parameter(Mandatory, ValueFromPipeline)]$LineItems
+    )
+        begin {
+            $VariantList = @()
+        }
+        process {
+            $VariantId = $LineItems.variant_id
+            $GraphQLQuery = @"
+            {
+                productVariant(id: "gid://shopify/ProductVariant/$VariantId") {
+                    sku
+                }
+            }
+"@
+        $Response = Invoke-ShopifyAPIFunction -Body $GraphQLQuery -Domain $Domain
+        
+        $VariantList += [PSCustomObject]@{
+            variantId = $VariantId
+            sku = $Response.data.productVariant.sku
+        }
+    }
+    end {
+        return $VariantList
+    }
+}
+
 function Get-TervisShopifyPersFeeObjects {
     param (
         [Parameter(Mandatory)]$Domain
